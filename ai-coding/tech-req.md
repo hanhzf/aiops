@@ -1,7 +1,8 @@
 # 技术架构设计
 
-应用架构中的分层设计和依赖关系管理，模块之间的关系ER图：
+## 1.分层设计的ER图
 
+应用架构中的分层设计和依赖关系管理，模块之间的关系ER图：
 
 ```mermaid
 classDiagram
@@ -99,7 +100,31 @@ classDiagram
 
 ```
 
-具体的架构的设计和实现方案：
+## 2.api调用流程
+
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant R as src/app/api/routes.py
+    participant M as src/app/api/middleware/
+    participant H as src/app/handlers/order.py
+    participant S as src/app/services/order.py
+    participant RP as src/app/repositories/order.py
+    participant DB as src/app/infrastructure/database.py
+
+    C->>R: GET /api/orders?page=1&size=20
+    R->>M: 经过中间件(认证/日志等)
+    M->>H: 路由到OrderHandler
+    H->>S: 调用OrderService
+    S->>RP: 调用OrderRepository
+    RP->>DB: 执行数据库查询
+    DB-->>RP: 返回查询结果
+    RP-->>S: 返回订单列表
+    S-->>H: 返回处理结果
+    H-->>C: 返回HTTP响应
+```
+
+## 3.具体的架构的设计和实现方案
 
 1. 分层设计：
 ```python
