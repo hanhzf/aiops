@@ -1,103 +1,206 @@
-# 架构需求
+# 技术架构设计
 
-## 系统架构
-### 一、Http 通信模块（http module）
-  - http server 管理
-  - api 接口
-  - swagger api 文档
-  - 身份认证拦截
+应用架构中的分层设计和依赖关系管理，模块之间的关系ER图：
 
-### 二、通信管理模块（Websocket Module）
-  - WebSocket 连接管理
-  - 消息的publish和subscribe
-  - 通信连接状态管理
 
-### 三、文件处理模块（File Module）
-* 核心职责：
-  - 处理语音文件上传
-  - 处理图片文件上传
-  - 文件临时存储管理
-  - 文件基础信息验证
+```mermaid
+classDiagram
+    class HTTPHandler {
+        +handle_request()
+    }
+    
+    class ChatHandler {
+        +get_messages(chat_id)
+        +create_chat()
+        +delete_chat()
+    }
+    
+    class OrderHandler {
+        +get_orders()
+        +create_order()
+        +update_order()
+    }
+    
+    class ReportHandler {
+        +get_reports()
+        +create_report()
+        +get_favorite_reports()
+    }
 
-### 四、AI 识别模块（AI Module）
-* 核心职责：
-  - 语音转文字能力
-  - 图片文字提取能力
-  - 文本意图识别能力
-  - 结构化信息提取能力
-  - 智能 SQL 生成能力
+    class ChatService {
+        +get_messages(chat_id)
+        +create_chat()
+        +delete_chat()
+    }
 
-### 四、对话管理模块（Chat Module）
-* 核心职责：
-  - 对话生命周期维护
-  - 消息收发和存储
-  - 历史对话管理和查询
-  - 对话删除
+    class OrderService {
+        +get_orders()
+        +create_order()
+        +update_order()
+    }
 
-### 五、场景管理模块（Scenario Module）
-* 核心职责：
-  - 调用 AI 模块进行订单信息识别
-  - 订单信息确认流程处理
-  - 订单创建和管理
+    class ReportService {
+        +get_reports()
+        +create_report()
+        +get_favorite_reports()
+    }
 
-### 六、订单处理模块（Order Module）
-* 核心职责：
-  - 调用 AI 模块进行订单信息识别
-  - 订单信息确认流程处理
-  - 订单创建和管理
+    class DBClient {
+        +execute_query()
+        +execute_transaction()
+    }
 
-### 七、报表处理模块（Report Module）
-* 核心职责：
-  - 调用 AI 模块生成查询 SQL
-  - 报表数据查询执行
-  - 报表收藏管理
-  - 收藏报表快速查看
+    class Repository {
+        <<interface>>
+        +find_one()
+        +find_many()
+        +create()
+        +update()
+        +delete()
+    }
 
-### 九、配置管理模块（Config Module）
-* 核心职责：
-  - YAML 配置文件加载与解析
-  - 环境变量配置加载
-  - 配置优先级管理
-* 配置加载规则：
-  - 环境变量配置覆盖YAML配置
-  - 环境变量命名规则：
-    ```
-    # YAML配置示例：
-    database:
-      host: localhost
-      port: 5432
-      
-    # 对应的环境变量：
-    DATABASE_HOST=xxx
-    DATABASE_PORT=xxx
-    ```
+    class ChatRepository {
+        +find_messages()
+        +create_chat()
+        +delete_chat()
+    }
 
-### 十、日志管理模块（Log Module）
-* 核心职责：
-  - 日志分级管理（DEBUG/INFO/WARN/ERROR）
-  - 日志格式化输出
-  - 日志文件管理
-* 日志规范：
-  - 统一的日志格式：
-    ```
-    [时间戳] [日志级别] [模块名] 日志内容
-    ```
-  - 日志文件切割与归档
+    class OrderRepository {
+        +find_orders()
+        +create_order()
+        +update_order()
+    }
 
-## 技术架构
+    class ReportRepository {
+        +find_reports()
+        +create_report()
+        +find_favorites()
+    }
 
-* 系统使用 Python 语言实现。
+    HTTPHandler ..> ChatHandler
+    HTTPHandler ..> OrderHandler
+    HTTPHandler ..> ReportHandler
+    
+    ChatHandler ..> ChatService
+    OrderHandler ..> OrderService
+    ReportHandler ..> ReportService
+    
+    ChatService ..> ChatRepository
+    OrderService ..> OrderRepository
+    ReportService ..> ReportRepository
+    
+    Repository <|.. ChatRepository
+    Repository <|.. OrderRepository
+    Repository <|.. ReportRepository
+    
+    ChatRepository ..> DBClient
+    OrderRepository ..> DBClient
+    ReportRepository ..> DBClient
 
-* 各个不同模块以代码内嵌模块的形式实现，实现模块间解耦。
+```
 
-* 通过 makefile 等方式将系统编译为 Cpython 可执行文件以保护代码。
+具体的架构的设计和实现方案：
 
-* 最终文件打包成二进制镜像，以 Docker 形式部署。
+1. 分层设计：
+```python
+# 1. Handler层 (src/app/http/handlers/)
+class OrderHandler:
+    def __init__(self, order_service: OrderService):
+        self._service = order_service
+    
+    async def get_orders(self, request):
+        # 处理HTTP请求参数
+        params = request.query_params
+        # 调用服务层方法
+        orders = await self._service.get_orders(params)
+        # 返回HTTP响应
+        return JSONResponse(orders)
 
-* 使用 postgres 数据库。
+# 2. Service层 (src/app/order/service.py)
+class OrderService:
+    def __init__(self, repository: OrderRepository):
+        self._repository = repository
+    
+    async def get_orders(self, params):
+        # 处理业务逻辑
+        orders = await self._repository.find_many(params)
+        return orders
 
-* 文件上传使用阿里云的 OSS，身份认证作为中间件。
+# 3. Repository层 (src/app/db/repositories/order.py)
+class OrderRepository:
+    def __init__(self, db_client: DBClient):
+        self._db = db_client
+    
+    async def find_many(self, params):
+        query = "SELECT * FROM orders WHERE..."
+        return await self._db.execute_query(query, params)
 
-* 对所有 API 在请求层进行拦截，打印所有请求的输入和输出。
+# 4. 依赖注入配置 (src/app/main.py)
+def setup_dependencies(app):
+    # 数据库客户端
+    db_client = DBClient(config.DATABASE_URL)
+    
+    # Repositories
+    order_repo = OrderRepository(db_client)
+    chat_repo = ChatRepository(db_client)
+    report_repo = ReportRepository(db_client)
+    
+    # Services
+    order_service = OrderService(order_repo)
+    chat_service = ChatService(chat_repo)
+    report_service = ReportService(report_repo)
+    
+    # Handlers
+    app.add_handler("/orders", OrderHandler(order_service))
+    app.add_handler("/chats", ChatHandler(chat_service))
+    app.add_handler("/reports", ReportHandler(report_service))
+```
 
-* 系统配置文件既支持 yaml 文件，也支持从环境变量获取，环境变量默认覆盖 yaml 配置文件内容。
+主要设计原则：
+
+1. **分层职责**：
+   - Handler层：处理HTTP请求/响应，参数验证，路由
+   - Service层：处理业务逻辑，事务管理，领域规则
+   - Repository层：处理数据访问，SQL执行，数据映射
+
+2. **依赖注入**：
+   - 上层通过构造函数注入依赖
+   - 避免模块间的直接耦合
+   - 便于单元测试和模块替换
+
+3. **接口隔离**：
+   - Repository层实现统一的接口
+   - Service层不直接依赖具体的数据库实现
+   - 便于切换数据源或添加缓存层
+
+4. **单向依赖**：
+   - HTTP模块依赖业务模块
+   - 业务模块不知道HTTP模块的存在
+   - 避免循环依赖
+
+这种设计的优点：
+
+1. **模块解耦**：
+   - 每个模块只依赖其直接的下层
+   - 便于独立开发和测试
+   - 便于替换具体实现
+
+2. **代码复用**：
+   - Repository层可以被多个Service复用
+   - 数据库连接和事务管理统一处理
+
+3. **可测试性**：
+   - 每层都可以独立测试
+   - 可以轻松Mock依赖
+   - 便于编写单元测试
+
+4. **可维护性**：
+   - 职责清晰，代码结构明确
+   - 容易定位和修复问题
+   - 便于新功能扩展
+
+建议：
+1. 使用依赖注入容器管理对象创建和生命周期
+2. 为核心接口编写抽象基类
+3. 使用异步框架(如FastAPI)处理HTTP请求
+4. 实现统一的错误处理和日志记录
