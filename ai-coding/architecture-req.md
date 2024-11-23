@@ -1,25 +1,41 @@
 # 架构需求
 
 ## 系统架构
+
+在系统的总体架构上，我们有两个核心服务：
+
+* wss - websocket server
+  主要负责 Websocket 通信管理，包括与客户端的 Websocket 实时通信管理以及链接状态管理
+
+* agent - AI agent service
+  主要的核心服务，负责接收用户的请求，并将其转交给 AI 大模型进行处理，通过智能地与用户交互，最终了解用户需求并返回用户所需的结果，目前结果主要是订单数据和报表数据
+
+## wss 系统架构
+* 建立基础的 WebSocket Server
+* 支持客户端建立通信链路。
+* 具备通信链路的监控和维护机制，如心跳机制。
+* 支持对通信链路的查询。
+* 实现通信链路的认证。
+* 支持用户 publish 消息和 subscribe 消息。
+* 提供 SDK，用于消息的发送、接收及心跳检测。
+
+## agent AI agent 服务
+
 ### 一、Http 通信模块（http module）
+* 核心职责
   - http server 管理
   - api 接口
   - swagger api 文档
   - 身份认证拦截
 
-### 二、通信管理模块（Websocket Module）
-  - WebSocket 连接管理
-  - 消息的publish和subscribe
-  - 通信连接状态管理
-
-### 三、文件处理模块（File Module）
+### 二、文件处理模块（File Module）
 * 核心职责：
   - 处理语音文件上传
   - 处理图片文件上传
   - 文件临时存储管理
   - 文件基础信息验证
 
-### 四、AI 识别模块（AI Module）
+### 三、AI 识别模块（AI Module）
 * 核心职责：
   - 语音转文字能力
   - 图片文字提取能力
