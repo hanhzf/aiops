@@ -3,6 +3,7 @@
 
 ```mermaid
 classDiagram
+    %% HTTP Handlers
     class HTTPHandler {
         +handle_request()
     }
@@ -16,14 +17,41 @@ classDiagram
     }
     
     class OrderHandler {
-        +create_order()
+        +query_orders()
         +get_order(order_id)
+        +create_order(order_data)
     }
     
     class ReportHandler {
         +get_favorite_report()
         +create_favorite_report()
         +query_favorite_reports()
+    }
+
+    class FileHandler {
+        +upload_file()
+        +get_file(file_id)
+    }
+
+    class External_WssService {
+        +on_connect()
+        +on_message()
+        +on_disconnect()
+    }
+
+    %% Services
+    class WebSocketHandler {
+        +publish(topic, message)
+        +subscribe(topic, callback)
+        +unsubscribe(topic)
+        +keep_alive()
+        +get_topics()
+        +get_connections()
+    }
+
+    class DispatcherService {
+        +run()
+        +dispatch(message)
     }
 
     class ChatService {
@@ -35,16 +63,41 @@ classDiagram
     }
 
     class OrderService {
+        +handle_message()
         +get_order(order_id)
-        +create_order()
+        +create_order(order_data)
+        -_refactor_company_name()
+        -_refactor_address()
+        -_parse_order_info()
     }
 
     class ReportService {
+        +handle_message()
         +get_favorite_report()
         +create_favorite_report()
         +query_favorite_reports()
+        +_get_report_sql()
     }
 
+    class FileService {
+        +upload(file)
+        +get_file(file_id)
+        -_validate_file(file)
+        -_store_file(file)
+    }
+
+    class AIService {
+        +asr(audio_file)
+        +ocr(image_file) 
+        +call(prompt)
+    }
+
+    class External_TmsService {
+        +create_order(order_data)
+        +get_order_status(order_id)
+    }
+
+    %% Infrastructure
     class DBClient {
         +execute_query()
         +execute_transaction()
@@ -69,26 +122,40 @@ classDiagram
 
     class OrderRepository {
         +get_order()
+        +query_orders()
         +create_order()
     }
 
     class ReportRepository {
-        +find_reports()
         +create_favorite_report()
-        +query_favorites()
+        +get_favorite_report()
+        +query_favorite_reports()
     }
 
+    %% Dependencies
     HTTPHandler ..> ChatHandler
     HTTPHandler ..> OrderHandler
     HTTPHandler ..> ReportHandler
+    HTTPHandler ..> FileHandler
+    
+    External_WssService ..> WebSocketHandler
+    WebSocketHandler ..> DispatcherService
+    
+    DispatcherService ..> ChatService
+    DispatcherService ..> OrderService
+    DispatcherService ..> ReportService
     
     ChatHandler ..> ChatService
     OrderHandler ..> OrderService
     ReportHandler ..> ReportService
+    FileHandler ..> FileService
     
     ChatService ..> ChatRepository
     OrderService ..> OrderRepository
+    OrderHandler ..> External_TmsService
+    OrderService ..> AIService
     ReportService ..> ReportRepository
+    ReportService ..> AIService
     
     Repository <|.. ChatRepository
     Repository <|.. OrderRepository
