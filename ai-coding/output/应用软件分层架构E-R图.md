@@ -13,7 +13,8 @@ classDiagram
         +query_chats(chat_id)
         +create_chat()
         +delete_chat()
-        +create_message()
+        +chat()
+        +get_latest_message()
     }
     
     class OrderHandler {
@@ -33,22 +34,7 @@ classDiagram
         +get_file(file_id)
     }
 
-    class External_WssService {
-        +on_connect()
-        +on_message()
-        +on_disconnect()
-    }
-
     %% Services
-    class WebSocketHandler {
-        +publish(topic, message)
-        +subscribe(topic, callback)
-        +unsubscribe(topic)
-        +keep_alive()
-        +get_topics()
-        +get_connections()
-    }
-
     class DispatcherService {
         +run()
         +dispatch(message)
@@ -60,6 +46,7 @@ classDiagram
         +create_chat()
         +delete_chat()
         +create_message()
+        +get_latest_message()
     }
 
     class OrderService {
@@ -118,6 +105,7 @@ classDiagram
         +create_chat()
         +delete_chat()
         +create_message()
+        +get_message()
     }
 
     class OrderRepository {
@@ -138,11 +126,10 @@ classDiagram
     HTTPHandler ..> ReportHandler
     HTTPHandler ..> FileHandler
     
-    External_WssService ..> WebSocketHandler
-    WebSocketHandler ..> DispatcherService
-    
-    DispatcherService ..> ChatService
+    ChatHandler ..> DispatcherService
+
     DispatcherService ..> OrderService
+    DispatcherService ..> ChatService
     DispatcherService ..> ReportService
     
     ChatHandler ..> ChatService
@@ -164,4 +151,23 @@ classDiagram
     ChatRepository ..> DBClient
     OrderRepository ..> DBClient
     ReportRepository ..> DBClient
+```
+
+暂时不用 `Websocket`，以下内容暂不启动:
+
+```
+class External_WssService {
+    +on_connect()
+    +on_message()
+    +on_disconnect()
+}
+
+class WebSocketHandler {
+    +publish(topic, message)
+    +subscribe(topic, callback)
+    +unsubscribe(topic)
+    +keep_alive()
+    +get_topics()
+    +get_connections()
+}
 ```
