@@ -12,6 +12,7 @@ classDiagram
         +query_chats(chat_id)
         +create_chat()
         +delete_chat()
+        +create_message()
     }
     
     class OrderHandler {
@@ -30,6 +31,7 @@ classDiagram
         +query_chats()
         +create_chat()
         +delete_chat()
+        +create_message()
     }
 
     class OrderService {
@@ -62,6 +64,7 @@ classDiagram
         +query_chats()
         +create_chat()
         +delete_chat()
+        +create_message()
     }
 
     class OrderRepository {
