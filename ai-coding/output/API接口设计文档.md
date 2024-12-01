@@ -69,71 +69,55 @@ type: [file_type] // audio或image
 {
     "data": {
         "chat_id": "550e8400-e29b-41d4-a716-446655440000",
-        "scene": "order",
         "created_at": "2024-01-01T12:00:00Z"
     },
     "message": ""
 }
 ```
 
-#### 2.2 发送消息
-- URL: `/chats/{chat_id}/completion`
-- 方法: POST
-- 描述: 在指定对话中发送消息
-- 请求体:
-```json
-{
-    "prompt": "请描述你的需求", // 可选，但 prompt 和 attachments 不可全为空
-    "parent_message_id": "661a9432-e29b-41d4-a716-123456229921",
-    "stream": "true", // 是否启用流式响应设计 
-    "attachments": ["550e8400-e29b-41d4-a716-446655440000"] // 可选,关联的文件ID
-}
-```
-- 响应:
-```json
-{
-    "data": {
-        "message_id": "550e8400-e29b-41d4-a716-446655440000",
-        "chat_id": "550e8400-e29b-41d4-a716-446655440000",
-        "index": 1,
-        "sender": "user",
-        "content": {
-            "type": "text",
-            "text": "消息内容"
-        },
-        "attachments": ["550e8400-e29b-41d4-a716-446655440000"],
-        "created_at": "2024-01-01T12:00:00Z"
-    },
-    "message": ""
-}
-```
-
-#### 2.3 获取最新的消息
-- URL: `/chats/{chat_id}/messages/latest`
+#### 2.2 获取对话历史清单
+- URL: `/chats`
 - 方法: GET
-- 描述: 获取最新的消息。当completion接口没有及时返回消息时，前端可通过此接口获取最新的返回。
-
-```
+- 描述: 获取对话清单
+- 查询参数:
+  - page: 页码,默认1
+  - size: 每页数量,默认20
 - 响应:
 ```json
 {
     "data": {
-        "message_id": "550e8400-e29b-41d4-a716-446655440000",
-        "chat_id": "550e8400-e29b-41d4-a716-446655440000",
-        "index": 1,
-        "sender": "user",
-        "content": {
-            "type": "text",
-            "text": "消息内容"
-        },
-        "attachments": ["550e8400-e29b-41d4-a716-446655440000"],
+        "total": 100,
+        "items": [
+             {
+                "id": "550e8400-e29b-41d4-a716-446655440000",
+                "name": "获取今日的订单金额汇总",
+                "scene": "report",
+                "created_at": "2024-01-01T12:00:00Z"
+            }
+        ]
+    },
+    "message": ""
+}
+```
+
+#### 2.3 获取对话详情
+- URL: `/chats/{chat_id}`
+- 方法: GET
+- 描述: 获取指定对话的详情（包含历史消息）
+- 响应:
+```json
+{
+    "data": {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "name": "获取今日的订单金额汇总",
+        "scene": "report",
         "created_at": "2024-01-01T12:00:00Z"
     },
     "message": ""
 }
 ```
 
-#### 2.3 获取对话历史消息
+#### 2.4 获取对话历史消息
 - URL: `/chats/{chat_id}/messages`
 - 方法: GET
 - 描述: 获取指定对话的历史消息
@@ -146,18 +130,87 @@ type: [file_type] // audio或image
 {
     "data": {
         "total": 100,
-        "items": [{
-            "message_id": "550e8400-e29b-41d4-a716-446655440000",
-            "chat_id": "550e8400-e29b-41d4-a716-446655440000",
-            "index": 1,
-            "sender": "user",
-            "content": {
-                "type": "text", 
-                "text": "消息内容"
-            },
-            "attachments": ["550e8400-e29b-41d4-a716-446655440000"],
-            "created_at": "2024-01-01T12:00:00Z"
-        }]
+        "items": [
+             {
+                "message_id": "550e8400-e29b-41d4-a716-446655440000",
+                "chat_id": "550e8400-e29b-41d4-a716-446655440000",
+                "index": 1,
+                "sender": "user",
+                "content": [
+                    {
+                    "type": "text",
+                    "text": "消息内容"
+                    }
+                ],
+                "attachments": ["550e8400-e29b-41d4-a716-446655440000"],
+                "created_at": "2024-01-01T12:00:00Z"
+            }
+        ]
+    },
+    "message": ""
+}
+```
+
+#### 2.5 发送消息
+- URL: `/chats/{chat_id}/completion`
+- 方法: POST
+- 描述: 在指定对话中发送消息
+- 请求体:
+```json
+{
+    "prompt": "请描述你的需求", // 可选，但 prompt 和 attachments 不可全为空
+    "parent_message_id": "661a9432-e29b-41d4-a716-123456229921",
+    "stream": "true", // 是否启用流式响应设计 
+    "attachments": ["550e8400-e29b-41d4-a716-446655440000"] // 可选,关联的文件ID
+}
+```
+- 响应 stream=false:
+```json
+{
+    "data": {
+        "message_id": "550e8400-e29b-41d4-a716-446655440000",
+        "chat_id": "550e8400-e29b-41d4-a716-446655440000",
+        "index": 1,
+        "sender": "user",
+        "content": [
+            {
+            "type": "text",
+            "text": "消息内容"
+            }
+        ],
+        "attachments": ["550e8400-e29b-41d4-a716-446655440000"],
+        "created_at": "2024-01-01T12:00:00Z"
+    },
+    "message": ""
+}
+```
+
+- 响应 stream=true 流式返回:
+```json
+
+```
+
+#### 2.3 获取最新的消息
+- URL: `/chats/{chat_id}/messages/latest`
+- 方法: GET
+- 描述: 获取最新的消息。当completion接口没有及时返回消息时，前端可通过此接口获取最新的返回。
+
+- 响应:
+```json
+{
+    "data": {
+        "message_id": "550e8400-e29b-41d4-a716-446655440000",
+        "chat_id": "550e8400-e29b-41d4-a716-446655440000",
+        "index": 1,
+        "sender": "user",
+        "content": [
+            {
+            "type": "text",
+            "text": "消息内容"
+            }
+        ],
+        "attachments": ["550e8400-e29b-41d4-a716-446655440000"],
+        "created_at": "2024-01-01T12:00:00Z"
     },
     "message": ""
 }
