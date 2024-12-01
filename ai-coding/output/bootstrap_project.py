@@ -217,7 +217,7 @@ def load_config() -> Dict[str, Any]:
   port: 5432
   username: postgres
   password: postgres
-  database: app_db
+  database: agent
 
 storage:
   type: aliyun_oss
