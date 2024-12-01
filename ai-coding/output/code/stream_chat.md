@@ -66,6 +66,23 @@ function ChatComponent() {
     </div>
   );
 }
+
+// 后端超时如何处理
+const streamChat = () => {
+  const eventSource = new EventSource('/chat/completions');
+  
+  // 设置整体超时
+  const timeout = setTimeout(() => {
+    eventSource.close();
+    handleError('Stream timeout');
+  }, 30000); // 30秒超时
+  
+  eventSource.onmessage = (event) => {
+    // 每收到消息重置超时
+    clearTimeout(timeout);
+    // ... 处理消息
+  };
+}
 ```
 
 ## 后端
