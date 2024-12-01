@@ -186,8 +186,36 @@ type: [file_type] // audio或image
 ```
 
 - 响应 stream=true 流式返回:
-```json
+    * API 会按照流式的格式对结果进行返回。
+    * 客户端需要根据 event 的类型来判断该消息返回是否结束。
+    * 当 event 是 message_delta 时，表示消息的发送结束。
+    * 当 event 是 message_done 时，说明正在发送过程中。
 
+```json
+{
+    "event": "message_delta", 
+    "data": {
+        "index": 1, // message的索引号
+        "type": "text", // 文字
+        "content": "好的，这就为您设计"
+    }
+}
+
+{
+    "event": "message_delta", 
+    "data": {
+        "index": 1,
+        "type": "pwchart", // chart
+        "content": "<pwchart></pwchart>"
+    }
+}
+
+{
+    "event": "message_done",
+    "data": {
+        "index": 1
+    }
+}
 ```
 
 #### 2.3 获取最新的消息
