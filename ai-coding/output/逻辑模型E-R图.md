@@ -13,7 +13,6 @@ erDiagram
     
     Chat {
         id uuid PK
-        status string
         scene string
         created_at timestamp
         updated_at timestamp

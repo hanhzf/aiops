@@ -13,7 +13,7 @@ classDiagram
         +query_chats(chat_id)
         +create_chat()
         +delete_chat()
-        +chat()
+        +chat_completion()
         +get_latest_message()
     }
     
