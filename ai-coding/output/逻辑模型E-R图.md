@@ -62,7 +62,7 @@ erDiagram
         message_id uuid FK
         name string
         sql_text string
-        description string 
+        params string
         usage_count int
         last_executed timestamp
         created_at timestamp
